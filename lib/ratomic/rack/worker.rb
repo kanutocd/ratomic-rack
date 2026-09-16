@@ -34,7 +34,7 @@ module Ratomic
               reply.send(:ok)
             when :call
               begin
-                response = application.call(payload)
+                response = application.call(payload.to_env)
                 reply.send([:ok, response], move: true)
               rescue Exception => e # rubocop:disable Lint/RescueException
                 error_data = [e.class.name.to_s, e.message.to_s, Array(e.backtrace)]
@@ -50,14 +50,14 @@ module Ratomic
       # Execute a request in the worker Ractor.
       #
       # @param application [#call] a Ractor-shareable Rack application
-      # @param env [Hash] a transferable Rack environment
+      # @param request [RequestEnvelope] an immutable request envelope
       # @return [Array] Rack response
       # @raise [Ratomic::Rack::Error] when the worker application raises
-      def call(application, env)
+      def call(application, request)
         initialize_application(application) unless @initialized
 
         reply = Ractor::Port.new
-        @ractor.send([:call, reply, env], move: true)
+        @ractor.send([:call, reply, request], move: true)
         receive_response(reply)
       ensure
         reply&.close unless reply&.closed?

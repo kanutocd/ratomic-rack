@@ -27,10 +27,12 @@ module Ratomic
       # @param env [Hash] Rack environment
       # @return [Array] Rack response
       def call(env)
+        request = RequestEnvelope.from_env(env)
+
         @pool.with do |worker|
           raise ArgumentError, 'pool must yield Ratomic::Rack::Worker instances' unless worker.is_a?(Worker)
 
-          worker.call(@application, env)
+          worker.call(@application, request)
         end
       end
 

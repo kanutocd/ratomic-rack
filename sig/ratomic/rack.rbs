@@ -9,7 +9,7 @@ module Ratomic
     end
 
     class Worker
-      def call: (untyped application, untyped env) -> Array[untyped]
+      def call: (untyped application, RequestEnvelope request) -> Array[untyped]
       def close: () -> nil
 
       private
@@ -22,6 +22,35 @@ module Ratomic
       def initialize: (untyped application, pool: untyped) -> Handler
       def call: (untyped env) -> Array[untyped]
       def close: () -> nil
+    end
+
+    class RequestEnvelope
+      HEADER_KEYS: Array[String]
+      SELECTED_ENV_KEYS: Array[String]
+
+      attr_reader method: String
+      attr_reader path: String
+      attr_reader query_string: String
+      attr_reader headers: Hash[String, String]
+      attr_reader body: String
+      attr_reader env_values: Hash[String, untyped]
+
+      def self.from_env: (Hash[untyped, untyped] env) -> RequestEnvelope
+      def initialize: (Hash[untyped, untyped] env) -> void
+      def to_env: () -> Hash[String, untyped]
+
+      private
+
+      def required_string: (Hash[untyped, untyped] env, String key) -> String
+      def optional_string: (Hash[untyped, untyped] env, String key) -> String
+      def extract_headers: (Hash[untyped, untyped] env) -> Hash[untyped, untyped]
+      def extract_body: (Hash[untyped, untyped] env) -> String
+      def extract_env_values: (Hash[untyped, untyped] env) -> Hash[String, untyped]
+      def copy_value: (untyped value) -> untyped
+      def immutable_string: (untyped value) -> String
+      def immutable_string_hash: (Hash[untyped, untyped] values) -> Hash[String, String]
+      def immutable_values: (Hash[String, untyped] values) -> Hash[String, untyped]
+      def duplicate_values: (Hash[String, untyped] values) -> Hash[String, untyped]
     end
 
     VERSION: String
