@@ -52,13 +52,6 @@ bundle exec rake quality
 The default task runs the tests, RuboCop, Steep, and YARD documentation checks.
 Use `bin/console` to open an interactive Ruby session with the gem loaded.
 
-## Project status
-
-Compatibility and benchmark results are recorded as the experiment progresses.
-See the project documents under `.ignoreme/codex/` for the architecture,
-technical decisions, implementation phases, benchmark plan, and compatibility
-matrix.
-
 ## Contributing
 
 Bug reports and pull requests are welcome on

@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require 'ratomic'
 require_relative 'rack/version'
+require_relative 'rack/handler'
+require_relative 'rack/worker'
 
 # Ratomic integration namespace.
 module Ratomic

@@ -3,6 +3,27 @@ module Ratomic
     class Error < StandardError
     end
 
+    class WorkerFactory
+      def self.new: () -> WorkerFactory
+      def call: () -> Worker
+    end
+
+    class Worker
+      def call: (untyped application, untyped env) -> Array[untyped]
+      def close: () -> nil
+
+      private
+
+      def initialize_application: (untyped application) -> void
+      def receive_response: (untyped reply) -> Array[untyped]
+    end
+
+    class Handler
+      def initialize: (untyped application, pool: untyped) -> Handler
+      def call: (untyped env) -> Array[untyped]
+      def close: () -> nil
+    end
+
     VERSION: String
   end
 end
