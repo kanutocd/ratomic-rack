@@ -26,6 +26,50 @@ module Ratomic
       end
     end
 
+    class StringBodyApplication
+      def self.call(_env)
+        [201, { 'x-body-type' => 'string' }, 'string body']
+      end
+    end
+
+    class EnumerableBody
+      def each
+        yield 'first'
+        yield 'second'
+      end
+    end
+
+    class EnumerableBodyApplication
+      def self.call(_env)
+        [202, { 'x-body-type' => 'enumerable' }, EnumerableBody.new]
+      end
+    end
+
+    class CloseableBody
+      def initialize(port)
+        @port = port
+      end
+
+      def each
+        yield 'closeable body'
+      end
+
+      def close
+        @port.send(:closed)
+      end
+    end
+
+    class CloseableBodyApplication
+      def initialize(port)
+        @port = port
+        freeze
+      end
+
+      def call(_env)
+        [203, { 'x-body-type' => 'closeable' }, CloseableBody.new(@port)]
+      end
+    end
+
     def setup
       @pool = ::Ratomic::LocalPool.new(size: 1, factory: Rack::WorkerFactory.new)
       @handler = Rack::Handler.new(Application, pool: @pool)
@@ -66,6 +110,51 @@ module Ratomic
       assert_equal ['request body'], response[2]
     end
 
+    def test_handler_preserves_status_and_headers
+      response = @handler.call(request_env('/headers').merge('HTTP_X_REQUEST_ID' => 'request-123'))
+
+      assert_equal 200, response[0]
+      assert_equal 'request-123', response[1]['x-request-id']
+    end
+
+    def test_string_response_body_is_materialized_as_an_array
+      with_handler(StringBodyApplication) do |handler|
+        response = handler.call(request_env('/string'))
+
+        assert_equal 201, response[0]
+        assert_equal ['string body'], response[2]
+      end
+    end
+
+    def test_array_response_body_is_preserved
+      response = @handler.call(request_env('/array').merge('rack.input' => 'array body'))
+
+      assert_equal ['array body'], response[2]
+    end
+
+    def test_enumerable_response_body_is_materialized
+      with_handler(EnumerableBodyApplication) do |handler|
+        response = handler.call(request_env('/enumerable'))
+
+        assert_equal 202, response[0]
+        assert_equal %w[first second], response[2]
+      end
+    end
+
+    def test_closeable_response_body_is_closed_before_returning
+      port = Ractor::Port.new
+
+      with_handler(CloseableBodyApplication.new(port)) do |handler|
+        response = handler.call(request_env('/closeable'))
+
+        assert_equal 203, response[0]
+        assert_equal ['closeable body'], response[2]
+        assert_equal :closed, port.receive
+      end
+    ensure
+      port&.close unless port&.closed?
+    end
+
     def test_worker_is_reused_after_an_application_error
       error = assert_raises(Rack::Error) do
         @handler.call(request_env('/error'))
@@ -103,6 +192,14 @@ module Ratomic
 
     def request_env(path)
       { 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => path }
+    end
+
+    def with_handler(application)
+      pool = ::Ratomic::LocalPool.new(size: 1, factory: Rack::WorkerFactory.new)
+      handler = Rack::Handler.new(application, pool: pool)
+      yield handler
+    ensure
+      handler&.close
     end
   end
 

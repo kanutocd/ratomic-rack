@@ -24,6 +24,21 @@ module Ratomic
       def close: () -> nil
     end
 
+    class ResponseEnvelope
+      attr_reader status: Integer
+      attr_reader headers: Hash[String, String]
+      attr_reader body: Array[String]
+
+      def self.from_rack_response: (Array[untyped] response) -> ResponseEnvelope
+      def initialize: (Array[untyped] response) -> void
+      def to_rack_response: () -> Array[untyped]
+
+      private
+
+      def materialize_body: (untyped body) -> Array[String]
+      def copy_headers: (untyped headers) -> Hash[String, String]
+    end
+
     class RequestEnvelope
       HEADER_KEYS: Array[String]
       SELECTED_ENV_KEYS: Array[String]

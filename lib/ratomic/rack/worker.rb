@@ -34,7 +34,7 @@ module Ratomic
               reply.send(:ok)
             when :call
               begin
-                response = application.call(payload.to_env)
+                response = ResponseEnvelope.from_rack_response(application.call(payload.to_env))
                 reply.send([:ok, response], move: true)
               rescue Exception => e # rubocop:disable Lint/RescueException
                 error_data = [e.class.name.to_s, e.message.to_s, Array(e.backtrace)]
@@ -89,7 +89,7 @@ module Ratomic
 
       def receive_response(reply)
         result = reply.receive
-        return result.fetch(1) if result.first == :ok
+        return result.fetch(1).to_rack_response if result.first == :ok
 
         error_class, message, backtrace = result.fetch(1)
         error = Error.new("#{error_class}: #{message}")

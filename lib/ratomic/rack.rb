@@ -3,6 +3,7 @@
 require 'ratomic'
 require_relative 'rack/version'
 require_relative 'rack/request_envelope'
+require_relative 'rack/response_envelope'
 require_relative 'rack/handler'
 require_relative 'rack/worker'
 
