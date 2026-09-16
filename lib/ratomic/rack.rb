@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'ratomic'
+require 'stringio'
 require_relative 'rack/version'
 require_relative 'rack/request_envelope'
 require_relative 'rack/response_envelope'

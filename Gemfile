@@ -7,6 +7,7 @@ gemspec
 gem 'irb', '~> 1.18'
 gem 'minitest', '~> 6.0'
 gem 'minitest-mock', '~> 5.27'
+gem 'puma', '~> 8.0'
 gem 'rake', '~> 13.4'
 gem 'rubocop', '~> 1.89'
 gem 'rubocop-minitest', '~> 0.40.0'

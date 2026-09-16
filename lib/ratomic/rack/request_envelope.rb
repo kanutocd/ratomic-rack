@@ -53,7 +53,7 @@ module Ratomic
         env['PATH_INFO'] = @path.dup
         env['QUERY_STRING'] = @query_string.dup
         @headers.each { |key, value| env[key.dup] = value.dup }
-        env['rack.input'] = @body.dup
+        env['rack.input'] = StringIO.new(@body.dup)
         env
       end
 
@@ -89,7 +89,12 @@ module Ratomic
         return value.dup if value.is_a?(String)
         return ''.dup if value.nil?
 
-        raise ArgumentError, 'rack.input must be a String in this phase'
+        if value.respond_to?(:read)
+          body = value.read
+          return body.dup if body.is_a?(String)
+        end
+
+        raise ArgumentError, 'rack.input must be String or readable in this phase'
       end
 
       def extract_env_values(env)

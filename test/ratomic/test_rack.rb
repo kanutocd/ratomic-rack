@@ -21,7 +21,7 @@ module Ratomic
             'x-rack-version' => env.fetch('rack.version', []).join('.'),
             'x-multithread' => env.fetch('rack.multithread', false).to_s
           },
-          [env.fetch('rack.input')]
+          [env.fetch('rack.input').read]
         ]
       end
     end
@@ -182,7 +182,7 @@ module Ratomic
       pool&.close
     end
 
-    def test_handler_rejects_a_non_string_rack_input
+    def test_handler_rejects_a_non_readable_rack_input
       assert_raises(ArgumentError) do
         @handler.call(request_env('/hello').merge('rack.input' => Object.new))
       end
