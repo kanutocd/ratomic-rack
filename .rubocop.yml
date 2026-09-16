@@ -1,8 +1,35 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
+
 AllCops:
-  TargetRubyVersion: 3.2
+  NewCops: enable
+  TargetRubyVersion: 4.0
 
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
+Metrics/ParameterLists:
+  CountKeywordArgs: false
 
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
+Metrics/ClassLength:
+  Max: 125
+  Exclude:
+    - "test/**/*"
+
+Metrics/MethodLength:
+  Max: 26
+  Exclude:
+    - "test/**/*"
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/AbcSize:
+  Enabled: true
+  Max: 55
+  Exclude:
+    - "test/**/*"
+
+Metrics/PerceivedComplexity:
+  Max: 10
+
+Style/DirectiveScope:
+  Enabled: false
