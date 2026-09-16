@@ -15,6 +15,8 @@ module Ratomic
         end
 
         @application = application
+        @lifecycle_mutex = Mutex.new
+        @closed = false
         @pool = pool
       end
 
@@ -27,6 +29,10 @@ module Ratomic
       # @param env [Hash] Rack environment
       # @return [Array] Rack response
       def call(env)
+        @lifecycle_mutex.synchronize do
+          raise IOError, 'handler is closed' if @closed
+        end
+
         request = RequestEnvelope.from_env(env)
 
         @pool.with do |worker|
@@ -40,6 +46,7 @@ module Ratomic
       #
       # @return [nil]
       def close
+        @lifecycle_mutex.synchronize { @closed = true }
         @pool.close
         nil
       end
